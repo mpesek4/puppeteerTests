@@ -1,11 +1,13 @@
 const puppeteer = require('puppeteer')
+console.log("test")
 
-void (async () => {
+startScript = async () => {
     try{
+        console.log("test")
         const browser = await puppeteer.launch()
         const page = await browser.newPage()
 
-        await page.goto('https://scrapethissite.com/pages/forms')
+        await page.goto('https://medium.com/robots.txt')
 
         await page.screenshot({
             path: './screenshots/pagel.png'
@@ -16,4 +18,6 @@ void (async () => {
     } catch (error){
         console.log(error)
     }
-})
+}
+
+startScript()
