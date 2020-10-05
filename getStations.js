@@ -7,11 +7,15 @@ const escapeXpathString = str => {
 
 
 const clickByText = async function(page, text, element) {
-    element = element || 'a';
-    await page.evaluate(() => {
-        [...document.querySelectorAll('a')].find(element => element.textContent.includes("Feedback")).click();
-      })
-    }
+    
+    let SELECTOR = "#primary > main > article > div > p:nth-child(3) > span:nth-child(2) > a"
+    await page.focus(SELECTOR);
+    await page.waitFor(2000);
+    await page.click(SELECTOR);
+    await page.screenshot({
+    path: './screenshots/pagel.png'
+})
+}
 
 
 console.log("test")
@@ -20,12 +24,12 @@ startScript = async () => {
     try{
         console.log("test")
         const browser = await puppeteer.launch()
-        console.log("1")
+     
         const page = await browser.newPage()
-        console.log("1")
+     
 
-        await page.goto('http://www.radiosure.com/stations/')
-        console.log("1")
+        await page.goto('http://www.radiosure.com/downloadz/')
+      
 
         await clickByText(page, "published stations")
         await page.waitForNavigation({waitUntil: 'load'})
