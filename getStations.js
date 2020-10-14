@@ -67,15 +67,40 @@ startScript = async () => {
         for(let state_value_tuple of state_values){
             
             let state_value = state_value_tuple[0]
-
-            
-            
+    
             console.log("state value is", state_value)
             let url = `http://widgets.icanbuy.com/c/standard/us/en/mortgage/tables/Mortgage.aspx?siteid=6a75f115ace46e5c&amp;loan_type=REFI&property_value=${PROPERTY_VALUE_MAX}&state=${state_value}`
             const page = await browser.newPage()
             console.log("url is", url)
 
             await page.goto(url) 
+
+
+            // This block of code changes the credit score selection
+            await page.waitForSelector('#fico_650 > span')
+            await page.$eval('#fico_650 > span', el => el.textContent ="Good (700-719)" )
+
+            
+            // end of setting credit score
+
+            //This block of code selects loan purpose (purchase or refinance)
+            await page.waitForSelector('#loanpurpose650 > span')
+            await page.$eval('#loanpurpose650 > span', el => el.textContent ="Refinance")
+            
+           
+            // end of block for selecting loan purpose 
+
+            // block for selecting loan products, right now all this does is uncheck 15%, can configure it later to select different options
+            await page.waitForSelector('#Checkbox2')
+            let isChecked = await page.$eval('#Checkbox2', el => el.checked ="")
+            await page.waitFor(4000)
+            console.log("is checked?",isChecked)
+            // end of loan products
+         
+
+
+
+
 
             await page.waitFor('input[class=propertyvalue]')
             await page.$eval('input[class=propertyvalue]', el => el.value = 'Adenosine triphosphate')
@@ -88,7 +113,8 @@ startScript = async () => {
              console.log("what is rateField", x)
              
 
-            let prop_val_element = await page.$('input[class=propertyvalue]')
+            // This block of code gets and sets the purchase price to an updated value
+            
 
             await page.$eval('input[class=propertyvalue]', el => el.value = '400000')
 
@@ -97,6 +123,13 @@ startScript = async () => {
             updated_prop_val_element = await page.evaluate(el => el.value, updated_prop_val_element)
 
             console.log("updated, ", updated_prop_val_element)
+            // end of setting purchase price
+            
+            page.click("#btngetrates_650")
+            
+
+
+            
 
             
            
