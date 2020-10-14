@@ -91,7 +91,7 @@ startScript = async () => {
 
       // end of block for selecting loan purpose
 
-      // block for selecting loan products, right now all this does is uncheck 15%, can configure it later to select different options
+      // This block of code is for selecting loan products, right now all this does is uncheck 15%, can configure it later to select different options
       await page.waitForSelector("#Checkbox2");
       let isChecked = await page.$eval("#Checkbox2", (el) => (el.checked = ""));
 
