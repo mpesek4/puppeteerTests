@@ -59,6 +59,23 @@ const state_values = [
 ];
 let dummy_rows = [];
 
+let popupHandler = async (page) => {
+    await page.waitForSelector(
+        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
+      )
+        let got_it_button2 = await page.$(
+        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
+      )
+
+      let got_it_button2_connected = await page.evaluate((el) => el.isConnected, got_it_button2);
+      
+      
+      if(got_it_button2_connected){
+        await page.click("#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button")
+        console.log("Should appear if there is a button for git it")
+      }
+}
+
 startScript = async () => {
   try {
     const browser = await puppeteer.launch();
@@ -72,24 +89,9 @@ startScript = async () => {
       console.log("url is", url);
 
       await page.goto(url);
-
-      await page.waitForSelector(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      )
-        let got_it_button2 = await page.$(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      )
-
-      let got_it_button2_connected = await page.evaluate((el) => el.isConnected, got_it_button2);
+      await page.setViewport({ width: 1900, height: 1200 })
+      popupHandler(page)
       
-      await page.screenshot({
-        path: "./screenshots/pagel1.png",
-      })
-      console.log("is there a got it button?", got_it_button2_connected)
-      if(got_it_button2_connected){
-        await page.click("#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button")
-        console.log("Should appear if there is a button for git it")
-      }
       await page.waitFor(3000);
       await page.screenshot({
         path: "./screenshots/pagel2.png",
@@ -97,7 +99,7 @@ startScript = async () => {
       await page.addStyleTag({ content: "*{scroll-behavior: auto !important;}" })
 
       // click enchance search immediately so we can add more fields
-      await page.waitFor(3000);
+      await page.waitFor(5000);
       await page.focus("#mortgage-show-cash-out-btn")
       await page.waitForSelector("#mortgage-show-cash-out-btn")
       await page.click("#mortgage-show-cash-out-btn");
@@ -185,18 +187,7 @@ startScript = async () => {
 
       // after we set all our fields and click get my rates, we might encounter a popup that says there are no available loans, we will press "got it" and continue
 
-      
-        await page.waitForSelector(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      );
-        let got_it_button = await page.$(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      );
-      if(got_it_button.isConnected){
-        page.click("#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button");
-      }
 
-      
       
       await browser.close();
     } // end FOR
