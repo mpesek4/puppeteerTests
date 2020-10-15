@@ -20,7 +20,7 @@ for(let cs of credit_scores){ // This loops will create all the permutations we 
     }
   }
 }
-// console.log(inputs)
+ console.log(inputs.length)
 
 const state_values = [
   ["AK", "Alaska"],
@@ -227,15 +227,46 @@ startScript = async () => {
       })
       await page.waitFor(10000)
 
-      const getThemAll = await page.$$('span[class^="ckm_detail-module_detail"]');
-      console.log("gta", getThemAll)
+      let getThemAll = await page.$$('span[class^="ckm_detail-module_detail"]');
+      // console.log("gta", getThemAll)
 
-      getThemAll.forEach(async (rate) => {
-        rate = await page.evaluate((el) => el.textContent, rate)
-        console.log("rate is", rate)
-      })
+      let field_values = []
+      let populateFieldValues = async (getThemAll) => {
+        getThemAll.forEach(async (val, idx) => {
 
-      console.log("DONE WITH BLOCK")
+          val =  await page.evaluate((el) => el.textContent, val)
+          console.log("pushing onto field_values", val)
+          field_values.push(val)
+        })
+        return getThemAll
+      }
+
+      getThemAll = await populateFieldValues(getThemAll)
+      
+      console.log("what are field values", field_values)
+      let new_row = []
+      for(let i = 0; i< field_values.length;i++){
+        if(i % 4 == 0){
+          if(i!=0){
+            dummy_rows.push(new_row)
+          }
+          console.log("rate is", field_values[i])
+        }
+        else if(i % 4 == 1){
+          console.log("apr is", field_values[i])
+  
+        }
+        else if(i % 4 == 2){
+          console.log("Mo Payment is", field_values[i])
+      
+        }
+        else if(i % 4 == 3){
+          console.log("Fees are", field_values[i])
+        }
+        new_row.push(field_values[i])
+      }
+
+      console.log("DONE WITH BLOCK, dummy rows are", dummy_rows)
       popupHandler()
       await page.screenshot({
         path: "./screenshots/printRates.png",
