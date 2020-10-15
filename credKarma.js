@@ -5,7 +5,7 @@ const PROPERTY_VALUE_MAX = 200000;
 const PROPERTY_VALUE_INC = 100000;
 let credit_scores = ["760","740","720","700","680","660","640",]
 let purchase_prices = []
-for(let i = 1; i<11; i++){
+for(let i = 3; i<11; i++){
   purchase_prices.push(i*100000)
 }
 let property_types = ["Single family","Multi-family", "Condo", "Townhome","Co-op","Manufactured home"] // index corresponds to value in dropdown on creditkarma
@@ -20,6 +20,7 @@ for(let cs of credit_scores){ // This loops will create all the permutations we 
     }
   }
 }
+// console.log(inputs)
 
 const state_values = [
   ["AK", "Alaska"],
@@ -77,27 +78,31 @@ const state_values = [
 let dummy_rows = [];
 
 let popupHandler = async (page) => {
+  try{
     await page.waitForSelector(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      )
-        let got_it_button2 = await page.$(
-        "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
-      )
+      "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
+    )
+      let got_it_button2 = await page.$(
+      "#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button"
+    )
 
-      let got_it_button2_connected = await page.evaluate((el) => el.isConnected, got_it_button2);
-      
-      
-      if(got_it_button2_connected){
-        await page.click("#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button")
-        console.log("Should appear if there is a button for git it")
-      }
+    let got_it_button2_connected = await page.evaluate((el) => el.isConnected, got_it_button2);
+    
+    
+    if(got_it_button2_connected){
+      await page.click("#__render-farm > div > div > div > div.ck-modal-root.flex.justify-center.overflow-y-auto.items-center.ck-modal-enter-done > div.ck-modal-body.z-1.bg-white.w-100.pa2.pa4-ns.overflow-y-auto.relative.absolute--fill > div > div:nth-child(2) > button")
+      console.log("Should appear if there is a button for git it")
+    }
+
+  } catch(error){console.log(error)}
+   
 }
 
 startScript = async () => {
 
   
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({headless: false});
     let url = `https://www.creditkarma.com/home-loans/mortgage-rates`;
     const page = await browser.newPage();
     await page.goto(url);
@@ -116,13 +121,15 @@ startScript = async () => {
       await page.addStyleTag({ content: "*{scroll-behavior: auto !important;}" })
 
       // click enchance search immediately so we can add more fields
-      await page.waitFor(3000);
+      await page.waitFor(1000);
       await page.screenshot({
         path: "./screenshots/beforeEnhance.png",
       })
       await page.focus("#mortgage-show-cash-out-btn")
       await page.waitForSelector("#mortgage-show-cash-out-btn")
+      await page.waitFor(1000);
       await page.click("#mortgage-show-cash-out-btn");
+      await page.waitFor(1000);
 
       // This block of code changes the credit score selection
 
@@ -130,23 +137,23 @@ startScript = async () => {
       await page.waitForSelector(
         "#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select"
       );
+      await page.waitFor(1000);
 
       console.log("what is new credit SCore", credit_score)
-      await page.$eval(
-        "#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select",
-        (el,my_value) => el.value = my_value,credit_score
-      );
+
+      await page.select('#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select', 'my-value', "680")
+     
+    
       // end of block that changes credit score selection
-      await page.waitFor(3000);
-      await page.screenshot({
-        path: "./screenshots/afterPop.png",
-      })
+      await page.waitFor(1000);
+      
       // This block of code gets and sets the purchase price to an updated value
       console.log("what is new purchase price", purchase_price)
       await page.$eval(
         "input[data-testid=search-form-purchasePrice-input]",
         (el,new_val) => (el.value = new_val),purchase_price
       );
+      
 
     //   let updated_prop_val_element = await page.$("input[class=propertyvalue]");
 
@@ -172,18 +179,18 @@ startScript = async () => {
       let is_30_checked = true
 
       // can set these other parameters or loop through certain options later
-      await page.$eval(
-        "input[data-testid=search-form-loanPrograms-input-30-year-fixed]",
-        (el,is_checked) => (el.checked = is_checked),is_30_checked
-      );
+      // await page.$eval(
+      //   "input[data-testid=search-form-loanPrograms-input-30-year-fixed]",
+      //   (el,is_checked) => (el.checked = is_checked),is_30_checked
+      // );
     //   await page.$eval(
     //     "input[data-testid=search-form-loanPrograms-input-20-year-fixed]",
     //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
     //   );
-      await page.$eval(
-        "input[data-testid=search-form-loanPrograms-input-15-year-fixed]",
-        (el,is_checked) => (el.checked = is_checked),is_30_checked
-      );
+      // await page.$eval(
+      //   "input[data-testid=search-form-loanPrograms-input-15-year-fixed]",
+      //   (el,is_checked) => (el.checked = is_checked),is_30_checked
+      // );
     //   await page.$eval(
     //     "input[data-testid=search-form-loanPrograms-input-10-year-fixed]",
     //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
@@ -204,21 +211,37 @@ startScript = async () => {
       //end of setting loan programs
 
       // click get my rates
-      await page.click("#mortgage-check-rates-btn")
 
-      const getThemAll = await page.$$("ckm_detail-module_detailValue--21DrW b");
-      console.log("gta", getThemAll);
+      await page.screenshot({
+        path: "./screenshots/afterPop.png",
+      })
+
+      await page.waitForSelector("#mortgage-check-rates-btn")
+      
+
+      await page.waitFor(5000)
+      await page.click("#mortgage-check-rates-btn")
+      await page.waitFor(5000)
+      await page.screenshot({
+        path: "./screenshots/newRates.png",
+      })
+      await page.waitFor(10000)
+
+      const getThemAll = await page.$$('span[class^="ckm_detail-module_detail"]');
+      console.log("gta", getThemAll)
 
       getThemAll.forEach(async (rate) => {
-        rate = await page.evaluate((el) => el.textContent, rate);
-        console.log("rate is", rate);
-      });
+        rate = await page.evaluate((el) => el.textContent, rate)
+        console.log("rate is", rate)
+      })
 
       console.log("DONE WITH BLOCK")
-
+      popupHandler()
       await page.screenshot({
         path: "./screenshots/printRates.png",
       })
+
+      await browser.close();
 
 
       
@@ -227,6 +250,6 @@ startScript = async () => {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
 startScript();
