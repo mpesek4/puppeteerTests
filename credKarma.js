@@ -3,6 +3,23 @@ const puppeteer = require("puppeteer");
 const PROPERTY_VALUE_MIN = 100000;
 const PROPERTY_VALUE_MAX = 200000;
 const PROPERTY_VALUE_INC = 100000;
+let credit_scores = ["760","740","720","700","680","660","640",]
+let purchase_prices = []
+for(let i = 1; i<11; i++){
+  purchase_prices.push(i*100000)
+}
+let property_types = ["Single family","Multi-family", "Condo", "Townhome","Co-op","Manufactured home"] // index corresponds to value in dropdown on creditkarma
+let loan_programs = ["30","20","15","10","7/1","5/1","3/1"]
+
+let inputs = []
+for(let cs of credit_scores){ // This loops will create all the permutations we want to scrape on credit karma
+  for(let pp of purchase_prices){
+    for(let pt of property_types){
+      let new_input = [cs,pp,pt]
+      inputs.push(new_input)
+    }
+  }
+}
 
 const state_values = [
   ["AK", "Alaska"],
@@ -77,55 +94,58 @@ let popupHandler = async (page) => {
 }
 
 startScript = async () => {
+
+  
   try {
     const browser = await puppeteer.launch();
+    let url = `https://www.creditkarma.com/home-loans/mortgage-rates`;
+    const page = await browser.newPage();
+    await page.goto(url);
+    console.log("set view")
+    await page.setViewport({ width: 1900, height: 1200 })
 
-    for (let state_value_tuple of state_values) {
-      let state_value = state_value_tuple[0];
+    for (let input of inputs) {
+      let credit_score = input[0]
+      let purchase_price = input[1]
+      let property_type = input[2]
+      
 
-      console.log("state value is", state_value);
-      let url = `https://www.creditkarma.com/home-loans/mortgage-rates`;
-      const page = await browser.newPage();
-      console.log("url is", url);
-
-      await page.goto(url);
-      await page.setViewport({ width: 1900, height: 1200 })
       popupHandler(page)
       
-      await page.waitFor(3000);
-      await page.screenshot({
-        path: "./screenshots/pagel2.png",
-      })
+      
       await page.addStyleTag({ content: "*{scroll-behavior: auto !important;}" })
 
       // click enchance search immediately so we can add more fields
-      await page.waitFor(5000);
+      await page.waitFor(3000);
+      await page.screenshot({
+        path: "./screenshots/beforeEnhance.png",
+      })
       await page.focus("#mortgage-show-cash-out-btn")
       await page.waitForSelector("#mortgage-show-cash-out-btn")
       await page.click("#mortgage-show-cash-out-btn");
 
       // This block of code changes the credit score selection
-      let test = "640";
 
-      // This block of code changes the credit score selection
+
       await page.waitForSelector(
         "#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select"
       );
+
+      console.log("what is new credit SCore", credit_score)
       await page.$eval(
         "#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select",
-        (el, my_value) => {
-          el.value = my_value;
-          console.log("what is my value", my_value);
-        },
-        test
+        (el,my_value) => el.value = my_value,credit_score
       );
       // end of block that changes credit score selection
-
+      await page.waitFor(3000);
+      await page.screenshot({
+        path: "./screenshots/afterPop.png",
+      })
       // This block of code gets and sets the purchase price to an updated value
-      let custom_price = "400000"
+      console.log("what is new purchase price", purchase_price)
       await page.$eval(
         "input[data-testid=search-form-purchasePrice-input]",
-        (el,new_val) => (el.value = new_val),custom_price
+        (el,new_val) => (el.value = new_val),purchase_price
       );
 
     //   let updated_prop_val_element = await page.$("input[class=propertyvalue]");
@@ -140,11 +160,11 @@ startScript = async () => {
 
       //This block of code sets the down payment amount
 
-      let custom_down_payment = "60000"
-      await page.$eval(
-        "input[data-testid=search-form-downPayment-input]",
-        (el,new_val) => (el.value = new_val),custom_down_payment
-      );
+      // let custom_down_payment = "60000"
+      // await page.$eval(
+      //   "input[data-testid=search-form-downPayment-input]",
+      //   (el,new_val) => (el.value = new_val),custom_down_payment
+      // );
 
       // end of setting down payment
 
@@ -183,14 +203,27 @@ startScript = async () => {
 
       //end of setting loan programs
 
+      // click get my rates
+      await page.click("#mortgage-check-rates-btn")
+
+      const getThemAll = await page.$$("ckm_detail-module_detailValue--21DrW b");
+      console.log("gta", getThemAll);
+
+      getThemAll.forEach(async (rate) => {
+        rate = await page.evaluate((el) => el.textContent, rate);
+        console.log("rate is", rate);
+      });
+
+      console.log("DONE WITH BLOCK")
+
+      await page.screenshot({
+        path: "./screenshots/printRates.png",
+      })
+
+
       
-
-      // after we set all our fields and click get my rates, we might encounter a popup that says there are no available loans, we will press "got it" and continue
-
-
-      
-      await browser.close();
     } // end FOR
+    await browser.close();
   } catch (error) {
     console.log(error);
   }

@@ -132,14 +132,14 @@ startScript = async () => {
       // This block prints all the rates
 
       const getThemAll = await page.$$("span.cell2value1");
-      console.log("gta", getThemAll);
+      // console.log("gta", getThemAll);
 
       getThemAll.forEach(async (rate) => {
         rate = await page.evaluate((el) => el.textContent, rate);
         console.log("rate is", rate);
       });
       // end of printing rates
-
+      await page.waitFor(5000)
       await browser.close();
     } // end FOR
   } catch (error) {
