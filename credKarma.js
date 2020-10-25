@@ -113,6 +113,9 @@ startScript = async () => {
       let credit_score = input[0]
       let purchase_price = input[1]
       let property_type = input[2]
+
+      console.log("credit score is", input[0])
+      console.log("purchase price is", input[1])
       
 
       popupHandler(page)
@@ -141,7 +144,9 @@ startScript = async () => {
 
       console.log("what is new credit SCore", credit_score)
 
-      await page.select('#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select', 'my-value', "680")
+
+      let test = "660"
+      await page.select('#__render-farm > div > div > div > aside > div > form > section > div.pt3-l.pt4.ph3.pb2.flex-shrink-0 > div:nth-child(3) > label > div.galaxy-forms-dropdown-root > select', `${test}`)
      
     
       // end of block that changes credit score selection
@@ -178,35 +183,57 @@ startScript = async () => {
       // This block of code sets check marks for the loan programs, ie 30-year fixed, 15-year fixed etc....
       let is_30_checked = true
 
-      // can set these other parameters or loop through certain options later
-      // await page.$eval(
-      //   "input[data-testid=search-form-loanPrograms-input-30-year-fixed]",
-      //   (el,is_checked) => (el.checked = is_checked),is_30_checked
-      // );
-    //   await page.$eval(
-    //     "input[data-testid=search-form-loanPrograms-input-20-year-fixed]",
-    //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
-    //   );
-      // await page.$eval(
-      //   "input[data-testid=search-form-loanPrograms-input-15-year-fixed]",
-      //   (el,is_checked) => (el.checked = is_checked),is_30_checked
-      // );
-    //   await page.$eval(
-    //     "input[data-testid=search-form-loanPrograms-input-10-year-fixed]",
-    //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
-    //   );
-    //   await page.$eval(
-    //     "input[data-testid=search-form-loanPrograms-input-7-1-arm]",
-    //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
-    //   );
-    //   await page.$eval(
-    //     "input[data-testid=search-form-loanPrograms-input-5-1-arm]",
-    //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
-    //   );
-    //   await page.$eval(
-    //     "input[data-testid=search-form-loanPrograms-input-3-1-arm]",
-    //     (el,is_checked) => (el.checked = is_checked),!is_30_checked
-    //   );
+      ///can set these other parameters or loop through certain options later
+
+      // lp will be something like "30" or "7/1" we need to set all the others to false and it to true
+
+      let current_lp = lp
+
+      let is_30_checked = false
+      let is_20_checked = false
+      let is_15_checked = false
+      let is_10_checked = false
+      let is_7arm_checked = false
+      let is_5arm_checked = false
+      let is_3arm_checked = false
+
+      if(lp == "30") is_30_checked = true
+      if(lp == "20") is_20_checked = true
+      if(lp == "15") is_15_checked = true
+      if(lp == "10") is_10_checked = true
+      if(lp == "7arm") is_7arm_checked = true
+      if(lp == "5arm") is_5arm_checked = true
+      if(lp == "3arm") is_3arm_checked = true
+      
+
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-30-year-fixed]",
+        (el,is_checked) => (el.checked = is_checked),is_30_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-20-year-fixed]",
+        (el,is_checked) => (el.checked = is_checked),is_20_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-15-year-fixed]",
+        (el,is_checked) => (el.checked = is_checked),is_15_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-10-year-fixed]",
+        (el,is_checked) => (el.checked = is_checked),is_10_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-7-1-arm]",
+        (el,is_checked) => (el.checked = is_checked),is_7arm_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-5-1-arm]",
+        (el,is_checked) => (el.checked = is_checked),is_5arm_checked
+      );
+      await page.$eval(
+        "input[data-testid=search-form-loanPrograms-input-3-1-arm]",
+        (el,is_checked) => (el.checked = is_checked),is_3arm_checked
+      );
 
       //end of setting loan programs
 
@@ -232,12 +259,17 @@ startScript = async () => {
 
       let field_values = []
       let populateFieldValues = async (getThemAll) => {
-        getThemAll.forEach(async (val, idx) => {
+        // getThemAll.forEach(async (val, idx) => {
 
-          val =  await page.evaluate((el) => el.textContent, val)
-          console.log("pushing onto field_values", val)
-          field_values.push(val)
-        })
+        //   val =  await page.evaluate((el) => el.textContent, val)
+        //   console.log("pushing onto field_values", val)
+        //   field_values.push(val)
+        // })
+        for(let row_val of getThemAll){
+          row_val = await page.evaluate((el) => el.textContent, row_val)
+          console.log("pushing onto field_values", row_val)
+          field_values.push(row_val)
+        }
         return getThemAll
       }
 
