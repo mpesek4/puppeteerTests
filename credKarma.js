@@ -1,5 +1,59 @@
 const puppeteer = require("puppeteer");
 
+const state_values = [
+  ["AK", "99801"],
+  ('AL', '36104'),
+  ('AZ', '85001'),
+  ('AR', '72201'),
+  ('CA', '95814'),
+  ('CO', '80202'),
+  ('CT', '06103'),
+  ('DE', '19901'),
+  ('FL', '32301'),
+  ('GA', '30303'),
+  ('HI', '96813'),
+  ('ID', '83702'),
+  ('IL', '62701'),
+  ('IN', '46225'),
+  ('IA', '50309'),
+  ('KS', '66603'),
+  ('KY', '40601'),
+  ('LA', '70802'),
+  ('ME', '04330'),
+  ('MD', '21401'),
+  ('MA', '02201'),
+  ('MI', '48933'),
+  ('MN', '55102'),
+  ('MS', '39205'),
+  ('MO', '65101'),
+  ('MT', '59623'),
+  ('NE', '68502'),
+  ('NV', '89701'),
+  ('NH', '03301'),
+  ('NJ', '08608'),
+  ('NM', '87501'),
+  ('NY', '12207'),
+  ('NC', '27601'),
+  ('ND', '58501'),
+  ('OH', '43215'),
+  ('OK', '73102'),
+  ('OR', '97301'),
+  ('PA', '17101'),
+  ('RI', '02903'),
+  ('SC', '29217'),
+  ('SD', '57501'),
+  ('TN', '37219'),
+  ('TX', '78701'),
+  ('UT', '84111'),
+  ('VT', '05602'),
+  ('VA', '23219'),
+  ('WA', '98507'),
+  ('DC', '20001'),
+  ('WV', '25301'),
+  ('WI', '53703'),
+  ('WY', '82001')
+];
+
 const PROPERTY_VALUE_MIN = 100000;
 const PROPERTY_VALUE_MAX = 200000;
 const PROPERTY_VALUE_INC = 100000;
@@ -9,72 +63,28 @@ for(let i = 3; i<11; i++){
   purchase_prices.push(i*100000)
 }
 let property_types = ["Single family","Multi-family", "Condo", "Townhome","Co-op","Manufactured home"] // index corresponds to value in dropdown on creditkarma
-let loan_programs = ["30","20","15","10","7/1","5/1","3/1"]
+let loan_programs = ["30","20","15","10","7arm","5arm","3arm"]
 
 let inputs = []
 for(let cs of credit_scores){ // This loops will create all the permutations we want to scrape on credit karma
   for(let pp of purchase_prices){
     for(let pt of property_types){
-      let new_input = [cs,pp,pt]
-      inputs.push(new_input)
+      for(let lp of loan_programs){
+        for(let state of state_values){
+          let zip_code = state[1]
+          let new_input = [cs,pp,pt,lp,zip_code]
+          inputs.push(new_input)
+        }
+        
+
+      }
+      
     }
   }
 }
  console.log(inputs.length)
 
-const state_values = [
-  ["AK", "Alaska"],
-  // ('AL', 'Alabama'),
-  // ('AZ', 'Arizona'),
-  // ('AR', 'Arkansas'),
-  // ('CA', 'California'),
-  // ('CO', 'Colorado'),
-  // ('CT', 'Connecticut'),
-  // ('DE', 'Delaware'),
-  // ('FL', 'Florida'),
-  // ('GA', 'Georgia'),
-  // ('HI', 'Hawaii'),
-  // ('ID', 'Idaho'),
-  // ('IL', 'Illinois'),
-  // ('IN', 'Indiana'),
-  // ('IA', 'Iowa'),
-  // ('KS', 'Kansas'),
-  // ('KY', 'Kentucky'),
-  // ('LA', 'Louisiana'),
-  // ('ME', 'Maine'),
-  // ('MD', 'Maryland'),
-  // ('MA', 'Massachusetts'),
-  // ('MI', 'Michigan'),
-  // ('MN', 'Minnesota'),
-  // ('MS', 'Mississippi'),
-  // ('MO', 'Missouri'),
-  // ('MT', 'Montana'),
-  // ('NE', 'Nebraska'),
-  // ('NV', 'Nevada'),
-  // ('NH', 'New Hampshire'),
-  // ('NJ', 'New Jersey'),
-  // ('NM', 'New Mexico'),
-  // ('NY', 'New York'),
-  // ('NC', 'North Carolina'),
-  // ('ND', 'North Dakota'),
-  // ('OH', 'Ohio'),
-  // ('OK', 'Oklahoma'),
-  // ('OR', 'Oregon'),
-  // ('PA', 'Pennsylvania'),
-  // ('RI', 'Rhode Island'),
-  // ('SC', 'South Carolina'),
-  // ('SD', 'South Dakota'),
-  // ('TN', 'Tennessee'),
-  // ('TX', 'Texas'),
-  // ('UT', 'Utah'),
-  // ('VT', 'Vermont'),
-  // ('VA', 'Virginia'),
-  // ('WA', 'Washington'),
-  // ('DC', 'Washington D.C.'),
-  // ('WV', 'West Virginia'),
-  // ('WI', 'Wisconsin'),
-  // ('WY', 'Wyoming')
-];
+
 let dummy_rows = [];
 
 let popupHandler = async (page) => {
@@ -113,6 +123,7 @@ startScript = async () => {
       let credit_score = input[0]
       let purchase_price = input[1]
       let property_type = input[2]
+      let lp = input[3]
 
       console.log("credit score is", input[0])
       console.log("purchase price is", input[1])
@@ -181,13 +192,13 @@ startScript = async () => {
       // end of setting down payment
 
       // This block of code sets check marks for the loan programs, ie 30-year fixed, 15-year fixed etc....
-      let is_30_checked = true
+     
 
       ///can set these other parameters or loop through certain options later
 
       // lp will be something like "30" or "7/1" we need to set all the others to false and it to true
 
-      let current_lp = lp
+      
 
       let is_30_checked = false
       let is_20_checked = false
@@ -277,28 +288,62 @@ startScript = async () => {
       
       console.log("what are field values", field_values)
       let new_row = []
+
+      let mo_payment = ""
+      let reported_apr=""
+      let rate=""
+      let lender_fees = ""
+      let loan_amount = purchase_price - down_payment
+
       for(let i = 0; i< field_values.length;i++){
         if(i % 4 == 0){
           if(i!=0){
             dummy_rows.push(new_row)
           }
           console.log("rate is", field_values[i])
+          rate = field_values[i]
         }
         else if(i % 4 == 1){
           console.log("apr is", field_values[i])
+          reported_apr = field_values[i]
   
         }
         else if(i % 4 == 2){
           console.log("Mo Payment is", field_values[i])
+          mo_payment = field_values[i]
       
         }
         else if(i % 4 == 3){
           console.log("Fees are", field_values[i])
+          lender_fees = field_values[i]
+
+          let insert_sql = `INSERT INTO testdata.loanScenario (loan_product,loan_amount,state,credit_score,points_credits,lender,interest_rate,loan_purpose, property_type, zip_code,mo_payment,reported_apr) \
+                          VALUES (${lp},${loan_amount},${state},${cs}, 0,${third_pty_fees},${rate}, ${lp},${pt}, ${zip_code},${mo_payment},${reported_apr} )`
+
+          console.log("inserting into table", insert_sql)
+
+
         }
         new_row.push(field_values[i])
+
+        
       }
 
       console.log("DONE WITH BLOCK, dummy rows are", dummy_rows)
+
+      
+      
+
+      // let insert_sql = 
+      // INSERT INTO scrapes.mortgage_news_daily 
+      // (insert_dttm, loan_purpose, property_value, loan_balance, state, rate_source, rate)
+      // VALUES
+
+      
+
+
+      
+
       popupHandler()
       await page.screenshot({
         path: "./screenshots/printRates.png",
